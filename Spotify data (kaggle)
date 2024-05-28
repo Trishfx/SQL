@@ -1,0 +1,74 @@
+# For this project, I downloaded Spotify data from Kaggle.
+# Then I created a table to insert Spotify data into.
+# Finally, I performed analytics on the data using SQL. 
+
+#Creating the table: 
+CREATE TABLE BIT_DB.Spotifydata (
+id integer PRIMARY KEY,
+artist_name varchar NOT NULL,
+track_name varchar NOT NULL,
+track_id varchar NOT NULL,
+popularity integer NOT NULL,
+danceability decimal(4,3) NOT NULL,
+energy decimal(4,3) NOT NULL,
+key integer NOT NULL,
+loudness decimal(5,3) NOT NULL,
+mode integer NOT NULL,
+speechiness decimal(5,4) NOT NULL,
+acousticness decimal(6,5) NOT NULL,
+instrumentalness text NOT NULL,
+liveness decimal(5,4) NOT NULL,
+valence decimal(4,3) NOT NULL,
+tempo decimal(6,3) NOT NULL,
+duration_ms integer NOT NULL,
+time_signature integer NOT NULL 
+)
+
+#Then I inserted the Spotify Data .csv into the table.
+
+#Next, I explored the data using the following SQL. 
+
+-- Find artist with the maximum popularity score among all their tracks
+
+SELECT artist_name, max_pop
+FROM (
+    SELECT artist_name, MAX(popularity) AS max_pop
+    FROM spotifydata
+    GROUP BY artist_name
+) AS artist_max_pop
+ORDER BY max_pop DESC
+LIMIT 1;
+
+
+--What is the average danceability, popularity, engery by artist and track
+
+SELECT artist_name ,track_name ,avg(popularity) AS avg_popularity,avg(danceability) AS avg_dance ,avg(energy) as avg_energy
+FROM spotifydata
+GROUP BY artist_name, track_name;
+
+--Who are the top 10 artists based on popularity? 
+Select artist_name, popularity
+FROM spotifydata
+ORDER BY popularity DESC
+LIMIT 10;
+
+--What artist released the longest song? 
+
+Select MAX(duration_ms), artist_name
+FROM spotifydata
+GROUP By artist_name
+LIMIT 1;
+
+--Which artists have the most tracks in the dataset?
+Select artist_name, count(track_id) as track_count
+From spotifydata 
+GROUP BY artist_name
+ORDER BY track_count DESC
+LIMIT 1;
+
+--Which tracks are have a rating of greater than 0.8 for danceable and energetic?
+Select artist_name, track_name, danceability, energy 
+From spotifydata
+WHERE danceability > 0.8 AND  energy  > 0.8
+ORDER BY danceability DESC,  energy  DESC
+LIMIT 10;
