@@ -118,3 +118,46 @@ FROM invoices as inv
 INNER JOIN invoice_items as item
 ON inv.invoiceId = item.invoiceId
 WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
+
+--Query that includes the purchased track name with each invoice line ID.
+SELECT t.name, i.InvoiceLineId
+FROM invoice_items as i
+INNER JOIN tracks as t
+ON i.TrackId = t.TrackId;
+
+--Query that includes the purchased track name AND artist name with each invoice line ID.
+SELECT t.name as track_name, art.name as artist_name, item.invoiceLineId as invoice
+FROM invoice_items as item 
+LEFT JOIN tracks as t 
+ON item.trackId = t.trackId
+INNER JOIN albums as a 
+ON t.AlbumId = a.albumId
+LEFT JOIN artists as art
+ON a.artistId = art.artistId;
+
+-- A query that shows all the Tracks, Album name, Media type, and Genre.
+SELECT t.name as track_name, 
+a.title as album_name, 
+media.name as media_type, 
+g.name as genre_name
+FROM albums as a
+LEFT JOIN tracks as t 
+ON a.albumId = t.albumId
+LEFT JOIN media_types as media
+ON t.MediaTypeId = media.MediaTypeId
+LEFT JOIN genres as g 
+ON t.GenreId = g.GenreId;
+
+-- Total sales made by each sales agent.
+SELECT DISTINCT SUM(i.Total) OVER (PARTITION BY SupportRepId) as total_sales,
+e.FirstName || ' ' || e.LastName as FullName
+FROM employees as e
+INNER JOIN customers as c
+ON e.employeeId = c.SupportRepId
+LEFT JOIN invoices as i
+ON c.CustomerID=i.CustomerId;
+
+--Which sales agent made the most dollars in sales in 2009?
+
+
+
