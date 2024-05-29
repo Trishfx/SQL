@@ -1,0 +1,120 @@
+#In this SQL, I'm querying a database with multiple tables (11) abour music albums, artists, and customer data. 
+
+-- Top 5 Artists with most albums 
+SELECT art.name,
+       count(alb.title) AS most_albums
+  FROM artists AS art
+       LEFT JOIN
+       albums AS alb ON art.artistId = alb.artistId
+ GROUP BY art.name
+ ORDER BY most_albums DESC
+ LIMIT 5;
+ 
+-- Most popular genre in Brazil
+
+SELECT cust.country,
+       count(gen.name) AS fav_genre,
+       gen.name
+  FROM customers AS cust
+       INNER JOIN
+       invoices AS invoice ON cust.CustomerId = invoice.CustomerId
+       INNER JOIN
+       invoice_items AS item ON invoice.InvoiceId = item.InvoiceId
+       INNER JOIN
+       tracks AS track ON item.TrackId = track.TrackId
+       INNER JOIN
+       genres AS gen ON track.GenreId = gen.GenreId
+ WHERE cust.Country = 'Brazil'
+ GROUP BY cust.country,
+          gen.name
+ ORDER BY fav_genre DESC;
+ 
+-- Calculte total revenue of items sold
+
+SELECT ROUND(SUM(UnitPrice * quantity), 2) AS total_revenue
+  FROM invoice_items;
+-- Calculte total revenue of items sold in USA
+
+SELECT cust.country,
+       ROUND(SUM(item.UnitPrice * item.quantity), 2) AS total_revenue
+  FROM customers AS cust
+       INNER JOIN
+       invoices AS invoice ON cust.customerId = invoice.customerId
+       INNER JOIN
+       invoice_items AS item ON invoice.invoiceId = item.invoiceId
+ WHERE cust.country = 'USA';
+
+-- Calculte total revenue of items sold in USA (as a subquery)
+
+SELECT country, ROUND(total_revenue, 2) AS total_revenue
+FROM (
+    SELECT cust.country, SUM(item.UnitPrice * item.quantity) AS total_revenue
+    FROM customers AS cust
+    INNER JOIN invoices AS invoice ON cust.customerId = invoice.customerId
+    INNER JOIN invoice_items AS item ON invoice.invoiceId = item.invoiceId
+    GROUP BY cust.country
+) AS subquery
+WHERE country = 'USA';
+
+-- Show Customers full names, customer ID, and country who are not in the US. 
+SELECT FirstName, LastName, CustomerId, Country
+FROM customers 
+WHERE Country <> 'USA';
+
+
+-- Show only the Customers from Brazil.
+
+SELECT FirstName, LastName, CustomerId, Country
+FROM customers 
+WHERE Country = 'Brazil';
+
+--Find the Invoices of customer's full name, Invoice ID, Date of the invoice, and billing country who are from Brazil
+SELECT cust.FirstName,cust.LastName, invoice.InvoiceID, invoice.InvoiceDate, invoice.BillingAddress, cust.country
+FROM customers AS cust
+INNER JOIN invoices AS invoice ON cust.CustomerId = invoice.CustomerId
+WHERE cust.Country = 'Brazil';
+
+--Show the Employees who are Sales Agents.
+SELECT title, FirstName, LastName
+FROM employees 
+WHERE title LIKE '%Sales Support Agent%';
+
+-- Unique list of billing countries from the Invoice table.
+SELECT DISTINCT cust.Country 
+FROM customers as cust
+INNER JOIN invoices as invoice 
+ON cust.customerId = invoice.customerId;
+
+--Invoices associated with each sales agent
+SELECT e.FirstName, e.LastName, i.invoiceId
+FROM employees as e
+JOIN customers as c
+ON c.SupportRepId = e.employeeId
+JOIN  invoices as i
+ON i.CustomerID = c.CustomerId;
+
+-- Invoice Total, Customer name, Country, and Sales Agent name for all invoices and customers.
+SELECT C.FirstName || ' ' || C.LastName as customer_FullName,
+E.LastName || ' ' || E.FirstName as Salesrep_names, 
+items.UnitPrice,
+items.Quantity,
+items.UnitPrice * items.Quantity AS total_invoice
+From employees as e 
+INNER JOIN customers as c
+ON e.employeeId = c.SupportRepId
+JOIN invoices as inv 
+ON c.customerID = inv.customerId
+JOIN invoice_items as items 
+ON inv.invoiceId = items.invoiceId;
+
+--How many Invoices were there in 2009?
+SELECT count (*), invoiceDate
+From invoices 
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
+
+-- What are the total sales for 2009?
+SELECT SUM(item.UnitPrice * item.Quantity) as total_sales
+FROM invoices as inv
+INNER JOIN invoice_items as item
+ON inv.invoiceId = item.invoiceId
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
