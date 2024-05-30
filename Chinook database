@@ -157,7 +157,16 @@ ON e.employeeId = c.SupportRepId
 LEFT JOIN invoices as i
 ON c.CustomerID=i.CustomerId;
 
---Which sales agent made the most dollars in sales in 2009?
 
+--Which sales agent made the most dollars in sales in 2009?
+SELECT DISTINCT e.LastName, e.FirstName,SUM(i.Total) as total_sales  
+FROM employees as e 
+INNER JOIN customers as c 
+ON e.EmployeeId = c.SupportRepId
+INNER JOIN invoices as i 
+ON c.CustomerId = i.CustomerId
+WHERE i.InvoiceDate LIKE '%2009%'
+GROUP BY e.LastName, e.FirstName
+ORDER By total_sales DESC;
 
 
