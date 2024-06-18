@@ -1,5 +1,7 @@
 ** Dataset used for this was from DATA CAMP Project:Analyzing Motorcycle parts** 
 
+#In this SQL, I'm querying a database with 10 columns #
+
 Question being answered was to find out how much Wholesale net revenue each product_line generated per month per warehouse in the dataset.
 
 
