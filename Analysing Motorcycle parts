@@ -1,0 +1,26 @@
+** Dataset used for this was from DATA CAMP Project:Analyzing Motorcycle parts** 
+
+Question being answered was to find out how much Wholesale net revenue each product_line generated per month per warehouse in the dataset.
+
+
+SELECT product_line, 
+       Month,
+       warehouse, 
+       SUM(total) - SUM(payment_fee) as net_revenue
+FROM (
+    SELECT 
+           product_line,
+           warehouse,
+           total,
+           payment_fee,
+           client_type,
+           CASE 
+               WHEN date BETWEEN '2021-06-01' AND '2021-06-30' THEN 'June'
+               WHEN date BETWEEN '2021-07-01' AND '2021-07-31' THEN 'July'
+               WHEN date BETWEEN '2021-08-01' AND '2021-08-31' THEN 'August'
+           END AS Month
+    FROM sales
+) AS subquery
+WHERE client_type = 'Wholesale'
+GROUP BY product_line, Month, warehouse
+ORDER BY net_revenue DESC;
