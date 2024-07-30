@@ -72,3 +72,15 @@ From spotifydata
 WHERE danceability > 0.8 AND  energy  > 0.8
 ORDER BY danceability DESC,  energy  DESC
 LIMIT 10;
+
+--Calculate the average popularity for the artists in the Spotify data table. 
+--For every artist with an average popularity of 90 or above, I labelled them as a “Top Star”.
+
+WITH popularity_average_CTE AS (
+  Select artist_name, AVG(popularity) as avg_pop
+  FROM spotifydata
+  GROUP BY artist_name
+)
+SELECT artist_name, avg_pop,'Top Star' AS tag FROM popularity_average_CTE
+WHERE avg_pop >= 90;
+
