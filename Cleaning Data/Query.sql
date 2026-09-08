@@ -7,7 +7,7 @@ From housing
 
 SELECT
     SUBSTR(PropertyAddress, 1, INSTR(PropertyAddress, ',') - 1) AS Address,
-    SUBSTR(PropertyAddress, INSTR(PropertyAddress, ',') + 1) AS Address
+    SUBSTR(PropertyAddress, INSTR(PropertyAddress, ',') + 1) AS City
 FROM housing;
 
 ALTER TABLE housing
