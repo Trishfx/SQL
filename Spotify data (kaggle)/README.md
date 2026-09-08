@@ -2,8 +2,8 @@
 
 ## Business Question
 Exploring a Spotify tracks dataset to understand artist popularity, track 
-characteristics (danceability, energy), and to identify top-performing 
-artists based on defined popularity thresholds.
+characteristics (danceability, energy), and to identify and rank 
+top-performing artists and tracks.
 
 ## Dataset
 - Source: Spotify dataset from Kaggle
@@ -13,7 +13,9 @@ artists based on defined popularity thresholds.
 
 ## SQL Techniques Used
 - Subqueries (finding the artist with maximum popularity)
-- Common Table Expressions (CTE) for calculating and labeling "Top Star" artists
+- Common Table Expressions (CTEs) for labeling artists and ranking tracks
+- **Window functions** (`RANK() OVER (PARTITION BY ...)`) to rank each 
+  artist's tracks by popularity
 - Aggregate functions (`AVG`, `MAX`, `COUNT`)
 - Multi-column `GROUP BY`
 - Multi-condition filtering (`WHERE ... AND ...`)
@@ -24,11 +26,14 @@ artists based on defined popularity thresholds.
 - Average danceability, popularity, and energy by artist and track
 - Top 10 artists by popularity
 - Which artist released the longest song
-- Which artists have the most tracks in the dataset
+- Which artist has the most tracks in the dataset
 - Tracks rated highly danceable and energetic (both above 0.8)
-- Artists with an average popularity of 90+, labeled as "Top Star"
+- Artists with an average popularity of 90+, labeled "Top Star"
+- Each artist's top 3 tracks by popularity, using a window function
 
 ## Notes
-Table schema was designed to match the structure of the Kaggle CSV before 
-import, including precise decimal typing for audio feature columns 
-(danceability, energy, valence, etc.).
+This project was extended beyond the original analysis to include a window 
+function (`RANK() OVER (PARTITION BY ...)`), ranking each artist's tracks by 
+popularity and surfacing their top 3. Window functions are a core skill for 
+analytics engineering roles, so this addition was made deliberately to 
+demonstrate that technique on real data rather than just aggregate queries.
