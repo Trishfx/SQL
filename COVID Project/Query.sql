@@ -1,0 +1,113 @@
+UPDATE Coviddeaths
+SET continent = Null
+WHERE continent = '';
+
+Select location,continent, date, total_cases, new_cases, total_deaths, population
+FROM coviddeaths
+WHERE continent IS NOT NULL;
+
+--Looking at Total cases vs total deaths
+--Shows likehood of dying if you contract covid in your country
+Select location, date, total_cases, total_deaths, CAST(total_deaths AS REAL) / total_cases * 100 AS death_percentage 
+FROM Coviddeaths
+WHERE location LIKE '%states%'; 
+
+-- Looking at total cases vs Total population
+
+Select location, date, total_cases, population, CAST(total_cases as Real)/population * 100 AS percentage_pop_infected
+FROM Coviddeaths
+WHERE location LIKE '%Ireland%'; 
+
+--Countries with highest infection Rates compared to population 
+Select location, population, MAX(total_cases) as highest_infection_count, MAX(CAST(total_cases as Real))/population * 100 AS percentage_pop_infected
+FROM Coviddeaths
+WHERE continent IS NOT NULL
+GROUP By location, population
+ORDER by percentage_pop_infected DESC;
+
+--Showing countries with highest death count per population 
+Select continent, MAX(cast(total_deaths as int)) as total_deaths
+FROM coviddeaths
+WHERE continent IS NOT NULL
+GROUP BY continent 
+ORDER By total_deaths DESC;
+
+--Lets break things dow by continent 
+
+--Showing continents with highest death count 
+Select continent, MAX(cast(total_deaths as int)) as total_deaths
+FROM coviddeaths
+WHERE continent IS not NULL
+GROUP BY continent
+ORDER By total_deaths DESC;
+
+--Global Numbers
+
+SELECT SUM(new_cases) AS total_cases, SUM(new_deaths) AS total_deaths, CAST(SUM(new_deaths) AS REAL) / SUM(new_cases) * 100 AS death_percentage
+FROM coviddeaths
+WHERE continent is not null;
+
+--Looking at total popuklation Vs Vaccinations 
+WITH PopvsVac (continent, location, date, population, new_vaccinations, Rolling_people_vacc) AS (
+    SELECT  cd.continent, cd.location, c.date, cd.population, cv.new_vaccinations, SUM(cv.new_vaccinations) OVER (PARTITION BY cd.location ORDER BY cd.date) AS Rolling_people_vacc
+    FROM 
+        coviddeaths AS cd
+    JOIN 
+        covidvacc AS cv 
+    ON 
+        cd.location = cv.location 
+        AND cd.date = cv.date
+    WHERE 
+        cd.continent IS NOT NULL
+)
+SELECT 
+    *, 
+    (Rolling_people_vacc / population) * 100 AS Vaccination_Percentage
+FROM 
+    PopvsVac;
+    
+-- TEmp Table 
+DROP Table if exists percent_pop_vaccinated
+CREATE TABLE percent_pop_vaccinated (
+    continent NVARCHAR(255), 
+    location NVARCHAR(255), 
+    date DATETIME, 
+    population NUMERIC, 
+    new_vaccinations NUMERIC, 
+    rolling_people_vacc NUMERIC
+);
+
+INSERT INTO percent_pop_vaccinated (continent, location, date, population, new_vaccinations, rolling_people_vacc)
+SELECT  
+    cd.continent, 
+    cd.location, 
+    cd.date, 
+    cd.population, 
+    cv.new_vaccinations, 
+    SUM(cv.new_vaccinations) OVER (PARTITION BY cd.location ORDER BY cd.date) AS rolling_people_vacc
+FROM 
+    coviddeaths AS cd
+JOIN 
+    covidvacc AS cv 
+ON 
+    cd.location = cv.location 
+    AND cd.date = cv.date
+WHERE 
+    cd.continent IS NOT NULL;
+
+
+SELECT 
+    *, 
+    (rolling_people_vacc / population) * 100 AS vaccination_percentage
+FROM 
+    percent_pop_vaccinated;
+    
+
+-- Creating view to store data for later visualisations 
+
+
+Select * 
+FROM percent_pop_vaccinated;
+
+
+ 
