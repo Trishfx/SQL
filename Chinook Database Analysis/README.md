@@ -11,7 +11,7 @@ sales agent performance.
   for practicing SQL joins across a realistic schema)
 - 11 tables including: `artists`, `albums`, `tracks`, `genres`, 
   `media_types`, `customers`, `employees`, `invoices`, `invoice_items`
-- Represents a digital media store: customers purchase tracks, invoices 
+- Represents a digital media store: customers purchase tracks, invoices
   are billed, and sales agents are tied to specific customer accounts
 
 ## SQL Techniques Used
