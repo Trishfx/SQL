@@ -83,3 +83,10 @@ WITH popularity_average_CTE AS (
 )
 SELECT artist_name, avg_pop,'Top Star' AS tag FROM popularity_average_CTE
 WHERE avg_pop >= 90;
+
+
+-- Rank each artist's tracks by popularity, showing their top 3 tracks
+SELECT artist_name, track_name, popularity,
+    RANK() OVER (PARTITION BY artist_name ORDER BY popularity DESC) AS popularity_rank
+FROM spotifydata
+QUALIFY popularity_rank <= 3;
