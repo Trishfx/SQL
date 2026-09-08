@@ -9,7 +9,7 @@ and exploratory analysis.
 
 | Project | Description |
 |---|---|
-| [Customer and Order Analytics](./Customer%20and%20Order%20Analytics/README.md) | Analyzing customer purchasing behavior and order patterns |
+| [Customer and Order Analytics](./Customer%20and%20Order%20Analytics)| Analyzing customer purchasing behavior and order patterns |
 | [COVID Project](./COVID%20project%20) | Exploring COVID-19 case and death data trends over time |
 | [Netflix Analytics](./Netflix%20Analytics) | Content and trend analysis on Netflix's catalog |
 | [Spotify Data (Kaggle)](./Spotify%20data%20(kaggle)) | Analyzing music streaming data for trends and popularity |
