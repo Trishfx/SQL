@@ -24,4 +24,4 @@ and exploratory analysis.
 Joins · CTEs · Window functions · Subqueries · Aggregations · Data cleaning · Exploratory analysis
 
 ## Let's connect
-[[LinkedIn](https://www.linkedin.com/in/patricia-o-loughlin/)] · [Email](patriciaemmaoloughlin@gmail.com)
+[[LinkedIn](https://www.linkedin.com/in/patricia-o-loughlin/)] · [Email](patriciaemmaoloughlin@gmail.com)]
