@@ -1,4 +1,8 @@
-#This analysis utilized the following Fortune 500 dataset:
+
+-- Fortune 500 Company Analysis
+-- Dataset: Fortune 500-style company data covering revenue,
+-- employee count, and benefits (healthcare, PTO, maternity leave)
+
 
 CREATE TABLE fortune_companies (
     company_id INTEGER PRIMARY KEY,
@@ -60,48 +64,51 @@ VALUES
 
 
 # Analysis: 
-# Assign all the companies offering health benefits as "postive, lets apply", "dont apply". 
---Select statment using case statment to find out information on companies--
-SELECT company_name, 
-CASE WHEN healthcare_benefits = 1 THEN "postive, lets apply"
-WHEN healthcare_benefits = 0 THEN "dont apply"
-END AS reasons_to_take_job
+ 
+-- (INSERT statements populating fortune_companies omitted here for brevity —
+-- see original data load script)
+ 
+-- Categorize companies as worth applying to based on healthcare benefits
+SELECT company_name,
+    CASE
+        WHEN healthcare_benefits = 1 THEN 'positive, let''s apply'
+        WHEN healthcare_benefits = 0 THEN 'don''t apply'
+    END AS reasons_to_take_job
 FROM fortune_companies;
-
-
-# Assign all the companies in the Healthcare industry as "mother friendly workplace", "acceptable", or "abysmal" based on the maternity leave offered. 
-SELECT
-company_name,
-CASE 
-  WHEN maternity_leave_weeks >= 10 THEN 'mother friendly workplace'
-  WHEN maternity_leave_weeks >= 8 THEN 'acceptable'
-  ELSE 'abysmal'
-END as mother_friendliness
+ 
+-- Categorize Healthcare industry companies by maternity leave generosity
+SELECT company_name,
+    CASE
+        WHEN maternity_leave_weeks >= 10 THEN 'mother friendly workplace'
+        WHEN maternity_leave_weeks >= 8 THEN 'acceptable'
+        ELSE 'abysmal'
+    END AS mother_friendliness
 FROM fortune_companies
-WHERE industry='Healthcare'
-;
-
- # What is average revenue of companies that offer healthcare benefits
+WHERE industry = 'Healthcare';
+ 
+-- Average revenue by industry, among companies offering healthcare benefits
 SELECT industry, AVG(revenue) AS avg_industry_revenue
 FROM fortune_companies
-WHERE healthcare_benefits=1;
-
-# Which companies have healthcare benefits *and* at least 20 paid time off days?
-Select company_name, industry
+WHERE healthcare_benefits = 1
+GROUP BY industry;
+ 
+-- Companies with healthcare benefits AND at least 20 paid time off days
+SELECT company_name, industry
 FROM fortune_companies
-WHERE healthcare_benefits =1 
-AND paid_time_off_days >=20;
-
-# Which companies have average number of employees greater than 2000
-
-SELECT company_name, industry, AVG(employees) as avg_employees
+WHERE healthcare_benefits = 1
+AND paid_time_off_days >= 20;
+ 
+-- Companies with more than 2000 employees
+SELECT company_name, industry, employees
 FROM fortune_companies
-GROUP BY company_name, industry
-HAVING avg_employees >2000
+WHERE employees > 2000
+ORDER BY employees DESC
 LIMIT 10;
-
-# Company with the highest employee tenture based on company name and industry
-SELECT MAX(avg_employee_tenure), company_name, industry
+ 
+-- Company with the highest average employee tenure
+SELECT company_name, industry, avg_employee_tenure
 FROM fortune_companies
-GROUP BY company_name
-ORDER By avg_employee_tenure DESC;
+GROUP BY company_name, industry, avg_employee_tenure
+ORDER BY avg_employee_tenure DESC
+LIMIT 1;
+ 
