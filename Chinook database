@@ -1,5 +1,12 @@
 #In this SQL, I'm querying a database with multiple tables (11) abour music albums, artists, and customer data. 
 
+-- =========================================================
+-- Chinook Database Analysis
+-- Dataset: Chinook sample database (11 tables covering music
+-- albums, artists, tracks, customers, employees, and invoices)
+-- =========================================================
+ 
+
 -- Top 5 Artists with most albums 
 SELECT art.name,
        count(alb.title) AS most_albums
@@ -11,41 +18,36 @@ SELECT art.name,
  LIMIT 5;
  
 -- Most popular genre in Brazil
-
 SELECT cust.country,
        count(gen.name) AS fav_genre,
        gen.name
   FROM customers AS cust
-       INNER JOIN
-       invoices AS invoice ON cust.CustomerId = invoice.CustomerId
-       INNER JOIN
-       invoice_items AS item ON invoice.InvoiceId = item.InvoiceId
-       INNER JOIN
-       tracks AS track ON item.TrackId = track.TrackId
-       INNER JOIN
-       genres AS gen ON track.GenreId = gen.GenreId
+       INNER JOIN invoices AS invoice ON cust.CustomerId = invoice.CustomerId
+       INNER JOIN invoice_items AS item ON invoice.InvoiceId = item.InvoiceId
+       INNER JOIN tracks AS track ON item.TrackId = track.TrackId
+       INNER JOIN genres AS gen ON track.GenreId = gen.GenreId
  WHERE cust.Country = 'Brazil'
  GROUP BY cust.country,
           gen.name
- ORDER BY fav_genre DESC;
+ ORDER BY fav_genre DESC
+LIMIT 1;
  
--- Calculte total revenue of items sold
-
+-- Total revenue of all items sold
 SELECT ROUND(SUM(UnitPrice * quantity), 2) AS total_revenue
-  FROM invoice_items;
--- Calculte total revenue of items sold in USA
+FROM invoice_items;
 
+-- Total revenue of items sold in USA
 SELECT cust.country,
        ROUND(SUM(item.UnitPrice * item.quantity), 2) AS total_revenue
-  FROM customers AS cust
-       INNER JOIN
-       invoices AS invoice ON cust.customerId = invoice.customerId
-       INNER JOIN
-       invoice_items AS item ON invoice.invoiceId = item.invoiceId
- WHERE cust.country = 'USA';
+FROM customers AS cust
+INNER JOIN invoices AS invoice ON cust.customerId = invoice.customerId
+INNER JOIN invoice_items AS item ON invoice.invoiceId = item.invoiceId
+WHERE cust.country = 'USA'
+GROUP BY cust.country;
 
--- Calculte total revenue of items sold in USA (as a subquery)
 
+-- Alternative approach to the same USA revenue question, using a subquery
+-- (to demonstrate two valid ways to solve the same problem)
 SELECT country, ROUND(total_revenue, 2) AS total_revenue
 FROM (
     SELECT cust.country, SUM(item.UnitPrice * item.quantity) AS total_revenue
@@ -56,25 +58,26 @@ FROM (
 ) AS subquery
 WHERE country = 'USA';
 
+
 -- Show Customers full names, customer ID, and country who are not in the US. 
 SELECT FirstName, LastName, CustomerId, Country
 FROM customers 
 WHERE Country <> 'USA';
 
 
--- Show only the Customers from Brazil.
-
+-- Customers based in Brazil.
 SELECT FirstName, LastName, CustomerId, Country
 FROM customers 
 WHERE Country = 'Brazil';
 
---Find the Invoices of customer's full name, Invoice ID, Date of the invoice, and billing country who are from Brazil
-SELECT cust.FirstName,cust.LastName, invoice.InvoiceID, invoice.InvoiceDate, invoice.BillingAddress, cust.country
+-- Invoices for customers from Brazil, with full name and billing details
+SELECT cust.FirstName, cust.LastName, invoice.InvoiceID,
+       invoice.InvoiceDate, invoice.BillingAddress, cust.country
 FROM customers AS cust
 INNER JOIN invoices AS invoice ON cust.CustomerId = invoice.CustomerId
 WHERE cust.Country = 'Brazil';
 
---Show the Employees who are Sales Agents.
+--Employees who are Sales Agents.
 SELECT title, FirstName, LastName
 FROM employees 
 WHERE title LIKE '%Sales Support Agent%';
@@ -112,7 +115,7 @@ SELECT count (*), invoiceDate
 From invoices 
 WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
 
--- What are the total sales for 2009?
+-- Total sales for 2009?
 SELECT SUM(item.UnitPrice * item.Quantity) as total_sales
 FROM invoices as inv
 INNER JOIN invoice_items as item
@@ -125,7 +128,7 @@ FROM invoice_items as i
 INNER JOIN tracks as t
 ON i.TrackId = t.TrackId;
 
---Query that includes the purchased track name AND artist name with each invoice line ID.
+-- Track name AND artist name with each invoice line ID.
 SELECT t.name as track_name, art.name as artist_name, item.invoiceLineId as invoice
 FROM invoice_items as item 
 LEFT JOIN tracks as t 
@@ -135,7 +138,7 @@ ON t.AlbumId = a.albumId
 LEFT JOIN artists as art
 ON a.artistId = art.artistId;
 
--- A query that shows all the Tracks, Album name, Media type, and Genre.
+-- Tracks Album name, Media type, and Genre.
 SELECT t.name as track_name, 
 a.title as album_name, 
 media.name as media_type, 
@@ -157,16 +160,39 @@ ON e.employeeId = c.SupportRepId
 LEFT JOIN invoices as i
 ON c.CustomerID=i.CustomerId;
 
-
---Which sales agent made the most dollars in sales in 2009?
-SELECT DISTINCT e.LastName, e.FirstName,SUM(i.Total) as total_sales  
-FROM employees as e 
-INNER JOIN customers as c 
-ON e.EmployeeId = c.SupportRepId
-INNER JOIN invoices as i 
-ON c.CustomerId = i.CustomerId
+-- Total sales made by each sales agent
+-- DISTINCT is required here because the join to invoices creates one row per invoice line, and the window function repeats the same total on
+-- every row for that agent — DISTINCT collapses it back to one row per agent.
+SELECT DISTINCT SUM(i.Total) OVER (PARTITION BY e.SupportRepId) AS total_sales,
+       e.FirstName || ' ' || e.LastName AS full_name
+FROM employees AS e
+INNER JOIN customers AS c ON e.employeeId = c.SupportRepId
+LEFT JOIN invoices AS i ON c.CustomerID = i.CustomerId;
+ 
+-- Which sales agent made the most dollars in sales in 2009?
+SELECT DISTINCT e.LastName, e.FirstName, SUM(i.Total) AS total_sales
+FROM employees AS e
+INNER JOIN customers AS c ON e.EmployeeId = c.SupportRepId
+INNER JOIN invoices AS i ON c.CustomerId = i.CustomerId
 WHERE i.InvoiceDate LIKE '%2009%'
 GROUP BY e.LastName, e.FirstName
-ORDER By total_sales DESC;
-
+ORDER BY total_sales DESC;
+ 
+-- Rank each sales agent's yearly performance using a CTE.
+-- Shows total sales per agent per year, ranked from highest to lowest each year.
+WITH agent_yearly_sales AS (
+    SELECT e.EmployeeId,
+           e.FirstName || ' ' || e.LastName AS agent_name,
+           STRFTIME('%Y', i.InvoiceDate) AS sales_year,
+           SUM(i.Total) AS total_sales
+    FROM employees AS e
+    INNER JOIN customers AS c ON e.EmployeeId = c.SupportRepId
+    INNER JOIN invoices AS i ON c.CustomerId = i.CustomerId
+    GROUP BY e.EmployeeId, agent_name, sales_year
+)
+SELECT agent_name, sales_year, total_sales,
+       RANK() OVER (PARTITION BY sales_year ORDER BY total_sales DESC) AS year_rank
+FROM agent_yearly_sales
+ORDER BY sales_year, year_rank;
+ 
 
